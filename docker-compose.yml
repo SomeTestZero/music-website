@@ -1,0 +1,95 @@
+version: '3.8'
+services:
+  music_client:
+    image: music_client
+    container_name: music_client
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_HOST=http://yyplab.site:8888
+      - PORT=8080
+    restart: always
+    networks:
+      - music_net
+
+  music_manage:
+    image: music_manage
+    container_name: music_manage
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_HOST=http://yyplab.site:8888
+      - PORT=8081
+    restart: always
+    networks:
+      - music_net
+
+  music_server:
+    image: music_server
+    container_name: music_server
+    ports:
+      - "8888:8888"
+    environment:
+      - MYSQL_URL=jdbc:mysql://mysql:3306/tp_music?serverTimezone=GMT%2B8&useSSL=false
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=123456y
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET_NAME=user01
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    volumes:
+      - /home/ubuntu/music_website/data/img:/img
+      - /home/ubuntu/music_website/data/song:/song
+    depends_on:
+      - redis
+      - mysql
+      - minio
+    restart: always
+    networks:
+      - music_net
+
+  redis:
+    image: redis:6.2
+    container_name: redis
+    restart: always
+    networks:
+      - music_net
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456y
+      - MYSQL_DATABASE=tp_music
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./music-server/sql/tp_music.sql:/docker-entrypoint-initdb.d/tp_music.sql
+    restart: always
+    networks:
+      - music_net
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
+    restart: always
+    networks:
+      - music_net
+
+volumes:
+  minio_data:
+
+networks:
+  music_net:
+    driver: bridge

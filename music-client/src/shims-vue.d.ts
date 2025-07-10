@@ -1,4 +1,9 @@
 /* eslint-disable */
+declare global {
+  interface Window {
+    NODE_HOST?: string;
+  }
+}
 declare module "*.vue" {
   import type { DefineComponent } from "vue";
   const component: DefineComponent<{}, {}, any>;

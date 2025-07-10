@@ -1,7 +1,13 @@
 import axios from 'axios'
 import router from '../router'
 
-const BASE_URL = process.env.NODE_HOST
+declare global {
+  interface Window {
+    NODE_HOST?: string;
+  }
+}
+
+const BASE_URL = window.NODE_HOST || 'http://localhost:8888'; // 运行时可配置
 
 axios.defaults.timeout = 5000 // 超时时间设置
 axios.defaults.withCredentials = true // true允许跨域

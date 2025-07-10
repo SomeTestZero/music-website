@@ -1,14 +1,12 @@
-FROM maven:3-openjdk-8-slim AS builder
+# 第一阶段：构建 jar 包
+FROM maven:3.8.8-eclipse-temurin-8 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-COPY pom.xml ./
-RUN mvn dependency:resolve -DskipTests -B
-
-COPY src ./src
-RUN mvn clean package -DskipTests -B -T 1C
-
-FROM openjdk:8-jre-alpine
+# 第二阶段：运行 jar 包
+FROM eclipse-temurin:8-jre
 WORKDIR /app
 COPY --from=builder /app/target/yin-0.0.1-SNAPSHOT.jar /app/yin-0.0.1-SNAPSHOT.jar
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/yin-0.0.1-SNAPSHOT.jar","--spring.config.location=/config/application-prod.yml"]
 EXPOSE 8888
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/yin-0.0.1-SNAPSHOT.jar", "--server.address=0.0.0.0"]
